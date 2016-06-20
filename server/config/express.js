@@ -17,8 +17,9 @@ import path from 'path';
 import config from './environment';
 import passport from 'passport';
 import session from 'express-session';
+import cors from 'cors';
 
-export default function(app) {
+export default function (app) {
   var env = app.get('env');
 
   if (env === 'development' || env === 'test') {
@@ -37,18 +38,29 @@ export default function(app) {
   app.set('view engine', 'ejs');
   app.use(compression());
   app.use(cookieParser());
-  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.urlencoded({extended: false}));
   app.use(bodyParser.json());
   app.use(methodOverride());
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(cors());
 
   // Persist sessions with MongoStore / sequelizeStore
   // We need to enable sessions for passport-twitter because it's an
   // oauth 1.0 strategy, and Lusca depends on sessions
   app.use(session({
-    secret: config.secrets.session
+    secret: config.secrets.session,
+    resave: false,
+    saveUninitialized: false
   }));
+
+  app.use(function (req, res, next) {
+    console.log('-- session --');
+    console.dir(req.session);
+    //console.log(util.inspect(req.session, true, 3));
+    console.log('-------------');
+    next()
+  });
 
   /**
    * Lusca - express server security
@@ -80,6 +92,6 @@ export default function(app) {
   }
 
   if ('development' === env || 'test' === env) {
-    app.use(errorHandler({ dumpExceptions: true, showStack: true })); // Error handler - has to be last
+    app.use(errorHandler({dumpExceptions: true, showStack: true})); // Error handler - has to be last
   }
 }
