@@ -43,7 +43,12 @@ export default function (app) {
 
   app.get('/userProfile', (req, res) => {
 
-    return res.json({authId: 'someId', name: '845454533'});
+    return rp.get('http://localhost:9000/api/smsoauth/accesstoken/', {
+      token: req.headers.authorization
+    }).then(response => {
+      return res.json(JSON.parse(response));
+    });
+
   });
 
   app.get('/loginWithSms/:mobileNumberId', (req, res) => {
